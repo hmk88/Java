@@ -1,0 +1,318 @@
+/* Author  Hafiz Haq
+
+*/
+package game;
+
+import javax.microedition.lcdui.Canvas;
+import javax.microedition.lcdui.Graphics;
+import javax.microedition.media.Manager;
+import javax.microedition.media.MediaException;
+
+
+class GameCanvas extends Canvas implements Runnable
+{
+         private int x, xC, xA, y, yC, yA;
+         private final int paddleWidth = 25, paddleHeight = 20;  
+         private final int ballwidth = 10, ballheight = 10;
+     	 private final int awidth = 40, aheight = 10;
+         private boolean keyIsPressed;
+         private int keyCode;
+         public String Score, Chance;
+         int score = 0, chance = 3;
+         private boolean directionUp;
+         private boolean directionLeft;
+		 private int level;
+		 private int s;
+        
+		 
+         ///////////////////////////////////////////////////////////////////////
+         //
+         // CONSTRUCTOR
+         //
+         ///////////////////////////////////////////////////////////////////////
+
+         public GameCanvas(int level)
+         {
+             (new Thread(this)).start();
+
+             x = 50;                  // set default position of the triangle
+             y = 150;
+
+             xC = x+7;                // set the x position of the ball (circle)
+             yC = 140;
+             
+             // set position of airplane
+             xA = getWidth()-40;
+             
+             // set when keyIsPressed 
+             keyIsPressed = false;
+
+             // set the directionUp variable to false
+             directionUp = false;
+             
+             directionLeft = false;
+
+             // update the screen
+             repaint();
+         }
+
+         
+         ///////////////////////////////////////////////////////////////////////
+         //
+         // GRAPHICS METHOD
+         //
+         ///////////////////////////////////////////////////////////////////////
+
+         
+		public void paint(Graphics graphics)
+         {
+            // for background
+            graphics.setColor(255, 255, 255); // color white
+            graphics.fillRect(0, 0, getWidth(), getHeight()); // whole screen
+                                                              // size
+
+            // draw blue rectangle
+            graphics.setColor(0,0,255);
+            graphics.fillRect(x, y, paddleWidth, paddleHeight);
+
+            // draw blue circle
+            graphics.setColor(255,0,0);
+            graphics.fillArc(xC, yC, ballwidth, ballheight, 0, 360);
+            
+            graphics.setColor(0,0,0);
+            graphics.drawString("Score",(getWidth() -50),5, Graphics.TOP | Graphics.LEFT);
+            
+            graphics.setColor(0,0,0);
+            graphics.drawString("Chance",40,5, Graphics.TOP | Graphics.RIGHT);
+            
+            
+           //Airplane
+            graphics.setColor(0,255,0);
+            graphics.fillRect(xA, yA, awidth, aheight);
+         }         
+		
+
+         ///////////////////////////////////////////////////////////////////////
+         //
+         // KEY PRESSED
+         //
+         ///////////////////////////////////////////////////////////////////////
+
+         protected void keyPressed(int keyCode)
+         {
+        	 this.keyCode = keyCode;
+        	 keyIsPressed = true;       	 
+         }
+         
+         ///////////////////////////////////////////////////////////////////////
+         //
+         // KEY RELEASED
+         //
+         ///////////////////////////////////////////////////////////////////////
+
+         protected void keyReleased(int keyCode)
+         {             
+             keyIsPressed = false;
+         }
+
+         ///////////////////////////////////////////////////////////////////////
+         //
+         // MOVE BALL
+         //
+         ///////////////////////////////////////////////////////////////////////
+
+         private void moveBall()
+         {
+        	 switch(this.keyCode)
+        	 {
+        	 case -3:     // left side
+        		 if (xC > 7)
+        			 xC -=5;
+        		 break;
+        	 case -4:      //right side
+        		 if (xC < (getWidth() - paddleWidth - 5))
+        			 xC +=5;
+        		 break;
+        		 
+        	 case KEY_NUM4:
+        		 if (xC > 7)
+        			 xC -=5;
+        		 break;
+        	 case KEY_NUM6:
+        		 if (xC < (getWidth() - paddleWidth - 5))
+        			 xC +=5;
+        		 break;
+        	 
+        	 }
+         }
+         
+         ///////////////////////////////////////////////////////////////////////
+         //
+         // MOVE TANK
+         //
+         ///////////////////////////////////////////////////////////////////////
+
+         private void movePaddle()
+         {
+        	 switch(this.keyCode)
+        	 {
+             		 
+        	 case -3:     // left side
+        		 if (x > 5)
+        			 x -= 5;
+        		 break;
+        	 case -4:      //right side
+        		 if (x < (getWidth() - paddleWidth - 5))
+        			 x += 5;
+        		 break;
+        		 
+        	 case KEY_NUM4:
+        		 if (x > 5)
+        			 x -= 5;
+        		 break;
+        	 case KEY_NUM6:
+        		 if (x < (getWidth() - paddleWidth - 5))
+        			 x += 5;
+        		 break;
+        		 
+        		 
+        		 
+        	 }
+         }
+         
+         //Move Airplane
+         
+         private void moveAirplane()
+         {
+        	 s = 0;
+        	if (level == 2)
+        		 s=3;
+        	 if (level == 3)
+        		 s=5;
+        	 if(xA == 0)
+                 directionLeft = false;
+
+             else if(xA == (getWidth() - 40))
+                 directionLeft = true;
+
+             if(directionLeft == false)
+                 xA =xA+1+s;
+
+             else if(directionLeft == true)
+                 xA =xA-1-s;
+        	 
+         }
+         
+         
+         ///////////////////////////////////////////////////////////////////////
+         //
+         // CHECK IF BALL HITS THE PLANE
+         //
+         ///////////////////////////////////////////////////////////////////////
+
+         private void Gunfire()
+         {
+         	 switch(this.keyCode)
+        	 {
+        	 case -5:
+        	 case KEY_NUM2:
+        		 directionUp = true;
+        		 while(directionUp == true)
+        		 {    yC--;
+        		 if(((xC >= xA) && (xC <= xA+40) && (yC == 10)) || (yC <= 10))
+                     directionUp = false;
+        		 if (directionUp == false)
+        			 break;
+        		 }
+        		 if(yC < 10 )
+        		 {
+        			 xC = x+7; 
+                     yC = 140;
+                     chance --;
+                    Score();
+        		 }
+                     if (((xC >= xA) && (xC <= xA+40)) && (yC == 10))
+                     {	 xC = x+7; 
+                     yC = 140;
+                     xA = getWidth()-40;
+                     score = score+100;
+                     Score();
+                     this.playSound(60,100,100);
+                     }
+                                   	          
+             break;
+        	 }
+         }
+         
+         // Sound play 
+         
+         void playSound(int note, int dur, int vol)
+         {
+         try 
+         {
+        Manager.playTone(note, dur, vol);
+        }
+         catch (MediaException e)
+         {
+        e.printStackTrace();
+        }
+         }
+
+		//When game is over
+         
+         private void gameOver()
+         {
+        	 StringBuffer blist = new StringBuffer("Best Score ");
+        	
+			  blist.append(score); 						 		  
+			  
+         }
+         
+         public void Score()   //score  and chance
+         {
+        	 Score="Score" +score;
+        	 Chance="Chance" +chance;
+         }
+
+         ///////////////////////////////////////////////////////////////////////
+         //
+         // RUN METHOD
+         //
+         ///////////////////////////////////////////////////////////////////////
+
+         public void run()
+         {
+             while(true)
+             {            	 
+                 try
+                 {
+                        Thread.sleep(10);
+                 }
+                 catch(InterruptedException ex)
+                 {
+                        ex.printStackTrace();
+                 }
+                 moveAirplane();
+                 
+                 // move paddle
+                 if(keyIsPressed)
+            		 movePaddle();
+
+                 // check if ball hits Airplane
+                if (keyIsPressed)
+                	Gunfire();
+
+                 // move the ball
+                if(keyIsPressed)
+                moveBall();
+                
+                //when chances are over 
+                if (chance == 0)
+                	gameOver();
+        
+
+                 // update the screen
+                 repaint();
+             }
+         }
+};
