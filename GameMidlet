@@ -1,0 +1,257 @@
+/* Author  Hafiz Haq
+
+*/
+package game;
+
+
+import game.GameCanvas;
+
+import javax.microedition.midlet.*;
+import javax.microedition.lcdui.*;
+
+import java.io.IOException;
+
+public class GameMIDlet extends MIDlet implements CommandListener, ItemStateListener
+{
+    
+  public static Display display;
+    private Command playCommand;
+    private Command levelCommand;
+    private Command instructionsCommand;
+    private Command scoresCommand;
+    private Command exitCommand;
+    private Command backCommand;
+    private Form form;
+    private Command pauseCommand;
+    public static int  level = 1;
+    private ChoiceGroup radioButtons;
+    private Form levelForm, instForm;
+    
+    private Image Image0;
+    private Image resize_Image;
+	private GameCanvas GameCanvas;
+    
+
+    ///////////////////////////////////////////////////////////////////////
+    //
+    // CONSTRUCTOR
+    //
+    ///////////////////////////////////////////////////////////////////////
+    
+    public GameMIDlet()
+    {
+    	 levelCommand = new Command ("Level", Command.ITEM, 2);
+         instructionsCommand = new Command("Instructions", Command.ITEM, 3);
+         scoresCommand= new Command("High Scores", Command.ITEM, 1);
+         pauseCommand= new Command("Pause", Command.STOP, 1);
+         exitCommand = new Command ("Exit", Command.EXIT, 0);
+         backCommand = new Command("back", Command.BACK, 0);
+         playCommand = new Command("Play", Command.STOP, 4);
+         form = new Form("AirPlane");
+       
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    //
+    // destroyApp
+    //
+    ///////////////////////////////////////////////////////////////////////
+
+    public void destroyApp(boolean unconditional)
+    {
+        notifyDestroyed();
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    //
+    // pauseApp
+    //
+    ///////////////////////////////////////////////////////////////////////
+    
+    public void pauseApp()
+    {
+        
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    //
+    // startApp
+    //
+    ///////////////////////////////////////////////////////////////////////
+
+    public void startApp()
+    {
+        display = Display.getDisplay(this);     
+        System.out.println("Get Started");
+        form = new Form("Airplane Hunter");
+        
+        form.addCommand(playCommand);
+        form.addCommand(levelCommand);
+        form.addCommand(instructionsCommand);
+        form.addCommand(scoresCommand);
+        form.addCommand(backCommand);
+        form.addCommand(pauseCommand);
+        form.addCommand(exitCommand);
+        
+        form.setCommandListener(this);
+        
+        try
+        {
+            // reading image
+           Image0 = Image.createImage("/game/img1.png");
+            // function call to display the picture
+            displayPicture();
+        }
+        catch (IOException e)
+        {
+            System.err.println("Unable to read .png file: " + e);
+        }
+
+    
+        display.setCurrent(form);
+    }
+    
+    
+    ///////////////////////////////////////////////////////////////////////
+    //
+    // handle the events
+    //
+    ///////////////////////////////////////////////////////////////////////
+
+   
+	public void commandAction(Command c, Displayable d)
+    {
+          if(c == exitCommand)
+                destroyApp(true);
+          
+          else if(c == levelCommand)
+          {
+        	  if (radioButtons != null)
+        		  radioButtons = null;
+        	  if (levelForm != null)
+        		  levelForm = null;
+
+              radioButtons = new ChoiceGroup("level ", Choice.EXCLUSIVE);
+
+              radioButtons.append("Easy", null);
+              radioButtons.append("Medium", null);
+              radioButtons.append("Hard", null);
+              
+              radioButtons.setSelectedIndex((level-1), true);
+              levelForm = new Form("Select Level");
+              levelForm.append(radioButtons);
+              levelForm.addCommand(backCommand);
+              levelForm.setCommandListener(this);
+              levelForm.setItemStateListener(this);
+              display.setCurrent(levelForm);
+
+        	  
+    }         
+
+	
+          else if (c== playCommand)
+     {
+
+
+             GameCanvas = new GameCanvas(level);
+             
+             GameCanvas.addCommand(playCommand);
+             GameCanvas.addCommand(levelCommand);
+             GameCanvas.addCommand(instructionsCommand);
+             GameCanvas.addCommand(scoresCommand);
+             GameCanvas.addCommand(backCommand);
+             GameCanvas.addCommand(exitCommand);
+             GameCanvas.addCommand(pauseCommand);
+                         
+            
+            display.setCurrent(GameCanvas);
+
+        }
+          
+          else if (c==scoresCommand)
+          {
+        	  if (instForm != null)
+        		  instForm = null;
+        	  
+        	  instForm = new Form ("Score");
+        	  
+        	  String msg = "Scor display";
+        	  instForm.append(msg);
+        	  instForm.setCommandListener(this);
+        	  
+        	  display.setCurrent(form);
+			        	  
+
+          }
+          
+          else if (c==instructionsCommand)
+
+          {
+              if(instForm != null)
+              {
+                  instForm = null;
+              }
+
+
+              instForm = new Form("Rules");
+              StringItem msg = new StringItem("Cursor button and numeric keys both perform movement., 4-Left,6-Right ", "Enjoy the Game");
+              instForm.append(msg);
+              instForm.addCommand(backCommand);
+              instForm.setCommandListener(this);
+              display.setCurrent(instForm);
+          }
+          else if (c == pauseCommand)
+        	  pauseApp();
+                    
+          else if( c == backCommand)
+          {
+        	  
+        	  display.setCurrent(form);
+        			  
+               
+          }
+    }
+	
+
+	public void itemStateChanged(Item item)
+	{
+		if (item ==radioButtons)
+			level =radioButtons.getSelectedIndex()+1;
+		
+	}
+          
+          private void displayPicture()
+          {
+
+            form.deleteAll();
+
+
+              resize_Image = rescaleImage(Image0, form.getWidth(), form.getHeight());
+
+
+              form.append(new ImageItem(null, resize_Image, ImageItem.LAYOUT_CENTER, null));
+           }
+          
+   
+	private Image rescaleImage(Image image02, int width, int height) 
+	{
+		int sourceWidth = Image0.getWidth();
+  		int sourceHeight = Image0.getHeight();
+
+  		Image newImage = Image.createImage(width, height);
+  		Graphics g = newImage.getGraphics();
+
+  		for(int y=0; y<height; y++)
+  		{
+  			for(int x=0; x<width; x++)
+  			{
+  				g.setClip(x, y, 1, 1);
+  				int dx = x * sourceWidth / width;
+  				int dy = y * sourceHeight / height;
+  				g.drawImage(Image0, x-dx, y-dy, Graphics.LEFT | Graphics.TOP);
+  			}
+  		}
+
+  		return Image.createImage(newImage);
+	}
+}
